@@ -1,25 +1,28 @@
+// <copyright file="Debit.cs" company="Ivan Paulovich">
+// Copyright © Ivan Paulovich. All rights reserved.
+// </copyright>
+
 namespace Infrastructure.InMemoryDataAccess
 {
     using System;
     using Domain.Accounts;
+    using Domain.Accounts.Debits;
     using Domain.Accounts.ValueObjects;
 
-    public class Debit : Domain.Accounts.Debits.Debit
+    public sealed class Debit : Domain.Accounts.Debits.Debit
     {
         public Debit(
-            IAccount account,
+            DebitId debitId,
+            AccountId accountId,
             PositiveMoney amountToWithdraw,
             DateTime transactionDate)
         {
-            AccountId = account.Id;
-            Amount = amountToWithdraw;
-            TransactionDate = transactionDate;
+            this.Id = debitId;
+            this.AccountId = accountId;
+            this.Amount = amountToWithdraw;
+            this.TransactionDate = transactionDate;
         }
 
-        protected Debit()
-        {
-        }
-
-        public AccountId AccountId { get; protected set; }
+        public AccountId AccountId { get; }
     }
 }

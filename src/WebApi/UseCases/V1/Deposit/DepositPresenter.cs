@@ -3,15 +3,30 @@ namespace WebApi.UseCases.V1.Deposit
     using Application.Boundaries.Deposit;
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public sealed class DepositPresenter : IOutputPort
     {
-        public IActionResult ViewModel { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult ViewModel { get; private set; } = new NoContentResult();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public void NotFound(string message)
         {
-            ViewModel = new NotFoundObjectResult(message);
+            this.ViewModel = new NotFoundObjectResult(message);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="depositOutput"></param>
         public void Standard(DepositOutput depositOutput)
         {
             var depositResponse = new DepositResponse(
@@ -19,7 +34,16 @@ namespace WebApi.UseCases.V1.Deposit
                 depositOutput.Transaction.Description,
                 depositOutput.Transaction.TransactionDate,
                 depositOutput.UpdatedBalance.ToDecimal());
-            ViewModel = new ObjectResult(depositResponse);
+            this.ViewModel = new ObjectResult(depositResponse);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        public void WriteError(string message)
+        {
+            this.ViewModel = new BadRequestObjectResult(message);
         }
     }
 }

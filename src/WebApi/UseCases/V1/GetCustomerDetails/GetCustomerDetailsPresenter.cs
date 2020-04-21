@@ -3,15 +3,15 @@ namespace WebApi.UseCases.V1.GetCustomerDetails
     using System.Collections.Generic;
     using Application.Boundaries.GetCustomerDetails;
     using Microsoft.AspNetCore.Mvc;
-    using WebApi.ViewModels;
+    using ViewModels;
 
     public sealed class GetCustomerDetailsPresenter : IOutputPort
     {
-        public IActionResult ViewModel { get; private set; }
+        public IActionResult ViewModel { get; private set; } = new NoContentResult();
 
         public void NotFound(string message)
         {
-            ViewModel = new NotFoundObjectResult(message);
+            this.ViewModel = new NotFoundObjectResult(message);
         }
 
         public void Standard(GetCustomerDetailsOutput getCustomerDetailsOutput)
@@ -44,7 +44,12 @@ namespace WebApi.UseCases.V1.GetCustomerDetails
                 getCustomerDetailsOutput.Name,
                 accounts);
 
-            ViewModel = new OkObjectResult(getCustomerDetailsResponse);
+            this.ViewModel = new OkObjectResult(getCustomerDetailsResponse);
+        }
+
+        public void WriteError(string message)
+        {
+            this.ViewModel = new BadRequestObjectResult(message);
         }
     }
 }

@@ -5,19 +5,19 @@ namespace WebApi.UseCases.V1.CloseAccount
     using Application.Boundaries.CloseAccount;
 
     /// <summary>
-    /// Close Account Response.
+    ///     Close Account Response.
     /// </summary>
     public sealed class CloseAccountResponse
     {
         public CloseAccountResponse(CloseAccountOutput output)
         {
-            AccountId = output.AccountId.ToGuid();
+            this.AccountId = output.AccountId.ToGuid();
         }
 
         /// <summary>
-        /// Gets account ID.
+        ///     Gets account ID.
         /// </summary>
         [Required]
-        public Guid AccountId { get; }
+        public Guid AccountId { get; }  = Guid.Empty;
     }
 }

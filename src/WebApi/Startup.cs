@@ -1,105 +1,82 @@
 namespace WebApi
 {
-    using Application.Services;
-    using Domain.Security.Services;
-    using Infrastructure.InMemoryDataAccess.Services;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.ApiExplorer;
+    using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+    using Modules;
+    using Modules.Common;
+    using Modules.Common.FeatureFlags;
+    using Modules.Common.Swagger;
     using Prometheus;
-    using WebApi.DependencyInjection;
-    using WebApi.DependencyInjection.FeatureFlags;
 
     public sealed class Startup
     {
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            this.Configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
-        #region Called for ASPNETCORE_ENVIRONMENT=Development
-
-        public void ConfigureDevelopmentServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers().AddControllersAsServices();
-            services.AddBusinessExceptionFilter();
-            services.AddFeatureFlags(Configuration);
-            services.AddVersioning();
-            services.AddSwagger();
-            services.AddUseCases();
-            services.AddInMemoryPersistence();
-            services.AddPresentersV1();
-            services.AddPresentersV2();
-            services.AddMediator();
-            services.AddSingleton<IUserService, TestUserService>();
+            services
+                .AddPersistence(this.Configuration)
+                .AddAuthentication(this.Configuration)
+                .AddFeatureFlags(this.Configuration)
+                .AddVersioning()
+                .AddSwagger()
+                .AddMediator()
+                .AddUseCases()
+                .AddPresentersV1()
+                .AddPresentersV2()
+                .AddCustomControllers()
+                .AddSpaStaticFiles(configuration =>
+                {
+                    configuration.RootPath = "ClientApp/build";
+                });
         }
 
-        public void ConfigureDevelopment(
+        public void Configure(
             IApplicationBuilder app,
             IWebHostEnvironment env,
             IApiVersionDescriptionProvider provider)
         {
-            app.UseHttpsRedirection();
-            app.UseMetricServer();
-            app.UseMangaHttpMetrics();
-            app.UseDeveloperExceptionPage();
-            app.UseRouting();
-            app.UseVersionedSwagger(provider);
-            app.UseStaticFiles();
-            app.UseEndpoints(endpoints =>
+            if (env.IsDevelopment())
             {
-                endpoints
-                    .MapControllers();
-            });
-        }
-
-        #endregion
-
-        #region Called for ASPNETCORE_ENVIRONMENT=Production
-
-        public void ConfigureProductionServices(IServiceCollection services)
-        {
-            services.AddControllers().AddControllersAsServices();
-            services.AddBusinessExceptionFilter();
-            services.AddFeatureFlags(Configuration);
-            services.AddVersioning();
-            services.AddSwagger();
-            services.AddUseCases();
-            services.AddSQLServerPersistence(Configuration);
-            services.AddPresentersV1();
-            services.AddPresentersV2();
-            services.AddMediator();
-            services.AddHttpContextAccessor();
-            services.AddGitHubAuthentication(Configuration);
-        }
-
-        public void ConfigureProduction(
-            IApplicationBuilder app,
-            IWebHostEnvironment env,
-            IApiVersionDescriptionProvider provider)
-        {
-            app.UseHttpsRedirection();
-            app.UseMetricServer();
-            app.UseMangaHttpMetrics();
-            app.UseRouting();
-            app.UseVersionedSwagger(provider);
-            app.UseStaticFiles();
-            app.UseAuthentication();
-            app.UseAuthorization();
-            app.UseCookiePolicy();
-            app.UseEndpoints(endpoints =>
+                app.UseDeveloperExceptionPage();
+            }
+            else
             {
-                endpoints
-                    .MapControllers()
-                    .RequireAuthorization();
-            });
+                app.UseExceptionHandler("/Error");
+                app.UseHsts();
+            }
+
+            app.UseSpaStaticFiles();
+            app.UseHttpsRedirection()
+                .UseStaticFiles()
+                .UseMetricServer()
+                .UseMangaHttpMetrics()
+                .UseRouting()
+                .UseVersionedSwagger(provider, this.Configuration)
+                .UseStaticFiles()
+                .UseAuthentication()
+                .UseAuthorization()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                }).UseSpa(spa =>
+                {
+                    spa.Options.SourcePath = "ClientApp";
+                    if (env.IsDevelopment())
+                    {
+                        spa.UseReactDevelopmentServer(npmScript: "start");
+                    }
+                });
         }
-
-        #endregion
-
     }
 }

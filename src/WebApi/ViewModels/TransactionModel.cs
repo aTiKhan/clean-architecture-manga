@@ -2,37 +2,40 @@ namespace WebApi.ViewModels
 {
     using System;
     using System.ComponentModel.DataAnnotations;
-    using Domain.Accounts;
+    using System.Diagnostics.CodeAnalysis;
     using Domain.Accounts.ValueObjects;
 
     /// <summary>
-    /// Transaction.
+    ///     Transaction.
     /// </summary>
     public sealed class TransactionModel
     {
         public TransactionModel(PositiveMoney amount, string description, DateTime transactionDate)
         {
-            Amount = amount.ToMoney().ToDecimal();
-            Description = description;
-            TransactionDate = transactionDate;
+            this.Amount = amount.ToMoney().ToDecimal();
+            this.Description = description;
+            this.TransactionDate = transactionDate;
         }
 
         /// <summary>
-        /// Gets Amount.
+        ///     Gets Amount.
         /// </summary>
         [Required]
+        [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
         public decimal Amount { get; }
 
         /// <summary>
-        /// Gets Description.
+        ///     Gets Description.
         /// </summary>
         [Required]
+        [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
         public string Description { get; }
 
         /// <summary>
-        /// Gets Transaction Date.
+        ///     Gets Transaction Date.
         /// </summary>
         [Required]
+        [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
         public DateTime TransactionDate { get; }
     }
 }

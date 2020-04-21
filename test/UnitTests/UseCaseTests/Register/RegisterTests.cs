@@ -1,4 +1,4 @@
-namespace UnitTests.UseCasesTests.Register
+namespace UnitTests.UseCaseTests.Register
 {
     using System;
     using System.Linq;
@@ -8,9 +8,9 @@ namespace UnitTests.UseCasesTests.Register
     using Domain.Accounts.ValueObjects;
     using Domain.Customers.ValueObjects;
     using Domain.Security.ValueObjects;
+    using Infrastructure.ExternalAuthentication;
     using Infrastructure.InMemoryDataAccess.Presenters;
-    using Infrastructure.InMemoryDataAccess.Services;
-    using UnitTests.TestFixtures;
+    using TestFixtures;
     using Xunit;
 
     public sealed class RegisterTests : IClassFixture<StandardFixture>
@@ -19,41 +19,38 @@ namespace UnitTests.UseCasesTests.Register
 
         public RegisterTests(StandardFixture fixture)
         {
-            _fixture = fixture;
+            this._fixture = fixture;
         }
 
         [Fact]
         public void GivenNullInput_ThrowsException()
         {
-            var register = new Register(null, null, null, null, null, null);
+            var register = new RegisterUseCase(null, null, null, null, null, null, null, null);
             Assert.ThrowsAsync<Exception>(async () => await register.Execute(null));
         }
 
         [Theory]
         [ClassData(typeof(PositiveDataSetup))]
-        public async Task Register_WritesOutput_InputIsValid(decimal amount)
+        public async Task Register_WritesOutput_AlreadyRegisterested(decimal amount)
         {
             var presenter = new RegisterPresenter();
-            var externalUserId = new ExternalUserId("github/ivanpaulovich");
-            var ssn = new SSN("8608178888");
+            string ssn = "8608178888";
 
-            var sut = new Register(
-                new TestUserService(_fixture.Context),
-                _fixture.CustomerService,
-                _fixture.AccountService,
-                _fixture.SecurityService,
+            var sut = new RegisterUseCase(
+                this._fixture.TestUserService,
+                this._fixture.CustomerService,
+                this._fixture.AccountService,
+                this._fixture.SecurityService,
                 presenter,
-                _fixture.UnitOfWork);
+                this._fixture.UnitOfWork,
+                this._fixture.CustomerRepository,
+                this._fixture.AccountRepository);
 
             await sut.Execute(new RegisterInput(
                 ssn,
-                new PositiveMoney(amount)));
+                amount));
 
-            var actual = presenter.Registers.Last();
-            Assert.NotNull(actual);
-            Assert.Equal(ssn, actual.Customer.SSN);
-            Assert.NotEmpty(actual.Customer.Name.ToString());
-            Assert.Equal(amount, actual.Account.CurrentBalance.ToDecimal());
+            Assert.NotEmpty(presenter.AlreadyRegistered);
         }
     }
 }

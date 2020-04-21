@@ -1,65 +1,81 @@
+// <copyright file="GetAccountDetailsOutput.cs" company="Ivan Paulovich">
+// Copyright © Ivan Paulovich. All rights reserved.
+// </copyright>
+
 namespace Application.Boundaries.GetAccountDetails
 {
+    using System;
     using System.Collections.Generic;
     using Domain.Accounts;
     using Domain.Accounts.Credits;
     using Domain.Accounts.Debits;
     using Domain.Accounts.ValueObjects;
 
-    public sealed class GetAccountDetailsOutput : IUseCaseOutput
+    /// <summary>
+    ///     Get Account Details Output Message.
+    /// </summary>
+    public sealed class GetAccountDetailsOutput
     {
-        public GetAccountDetailsOutput(
-            AccountId accountId,
-            Money currentBalance,
-            List<Transaction> transactions)
-        {
-            AccountId = accountId;
-            CurrentBalance = currentBalance;
-            Transactions = transactions;
-        }
-
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="GetAccountDetailsOutput" /> class.
+        /// </summary>
+        /// <param name="account">Account object.</param>
         public GetAccountDetailsOutput(IAccount account)
         {
-            var accountEntity = (Account)account;
-
-            AccountId = accountEntity.Id;
-            CurrentBalance = accountEntity
-                .GetCurrentBalance();
-
-            List<Transaction> transactionResults = new List<Transaction>();
-            foreach (var credit in accountEntity.Credits
-                    .GetTransactions())
+            if (account is Account accountEntity)
             {
-                Credit creditEntity = (Credit)credit;
+                this.AccountId = accountEntity.Id;
+                this.CurrentBalance = accountEntity
+                    .GetCurrentBalance();
 
-                Transaction transactionOutput = new Transaction(
-                    creditEntity.Description,
-                    creditEntity.Amount,
-                    creditEntity.TransactionDate);
-
-                transactionResults.Add(transactionOutput);
-            }
-
-            foreach (var debit in accountEntity.Debits
+                List<Transaction> transactionResults = new List<Transaction>();
+                foreach (var credit in accountEntity.Credits
                     .GetTransactions())
-            {
-                Debit debitEntity = (Debit)debit;
+                {
+                    if (credit is Credit creditEntity)
+                    {
+                        Transaction transactionOutput = new Transaction(
+                            Credit.Description,
+                            creditEntity.Amount,
+                            creditEntity.TransactionDate);
 
-                Transaction transactionOutput = new Transaction(
-                    debitEntity.Description,
-                    debitEntity.Amount,
-                    debitEntity.TransactionDate);
+                        transactionResults.Add(transactionOutput);
+                    }
+                }
 
-                transactionResults.Add(transactionOutput);
+                foreach (var debit in accountEntity.Debits
+                    .GetTransactions())
+                {
+                    if (debit is Debit debitEntity)
+                    {
+                        Transaction transactionOutput = new Transaction(
+                            Debit.Description,
+                            debitEntity.Amount,
+                            debitEntity.TransactionDate);
+
+                        transactionResults.Add(transactionOutput);
+                    }
+                }
+
+                this.Transactions = transactionResults;
             }
-
-            Transactions = transactionResults;
+            else
+                throw new ArgumentNullException(nameof(account));
         }
 
+        /// <summary>
+        ///     Gets the AccountId.
+        /// </summary>
         public AccountId AccountId { get; }
 
+        /// <summary>
+        ///     Gets the Current balance.
+        /// </summary>
         public Money CurrentBalance { get; }
 
+        /// <summary>
+        ///     Gets the Transactions.
+        /// </summary>
         public List<Transaction> Transactions { get; }
     }
 }

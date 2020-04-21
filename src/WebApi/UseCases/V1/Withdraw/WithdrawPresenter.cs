@@ -3,18 +3,25 @@ namespace WebApi.UseCases.V1.Withdraw
     using Application.Boundaries.Withdraw;
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public sealed class WithdrawPresenter : IOutputPort
     {
-        public IActionResult ViewModel { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <value></value>
+        public IActionResult ViewModel { get; private set; } = new NoContentResult();
 
         public void NotFound(string message)
         {
-            ViewModel = new NotFoundObjectResult(message);
+            this.ViewModel = new NotFoundObjectResult(message);
         }
 
         public void OutOfBalance(string message)
         {
-            ViewModel = new BadRequestObjectResult(message);
+            this.ViewModel = new BadRequestObjectResult(message);
         }
 
         public void Standard(WithdrawOutput withdrawOutput)
@@ -24,7 +31,12 @@ namespace WebApi.UseCases.V1.Withdraw
                 withdrawOutput.Transaction.Description,
                 withdrawOutput.Transaction.TransactionDate,
                 withdrawOutput.UpdatedBalance.ToDecimal());
-            ViewModel = new ObjectResult(withdrawResponse);
+            this.ViewModel = new ObjectResult(withdrawResponse);
+        }
+
+        public void WriteError(string message)
+        {
+            this.ViewModel = new BadRequestObjectResult(message);
         }
     }
 }

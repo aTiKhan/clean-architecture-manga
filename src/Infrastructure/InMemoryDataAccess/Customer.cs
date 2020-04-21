@@ -1,3 +1,7 @@
+// <copyright file="Customer.cs" company="Ivan Paulovich">
+// Copyright © Ivan Paulovich. All rights reserved.
+// </copyright>
+
 namespace Infrastructure.InMemoryDataAccess
 {
     using System;
@@ -6,23 +10,15 @@ namespace Infrastructure.InMemoryDataAccess
     using Domain.Customers;
     using Domain.Customers.ValueObjects;
 
-    public class Customer : Domain.Customers.Customer
+    public sealed class Customer : Domain.Customers.Customer
     {
-        public Customer()
+        public Customer(CustomerId customerId, SSN ssn, Name name, IEnumerable<AccountId> accounts)
         {
-        }
-
-        public Customer(SSN ssn, Name name)
-        {
-            Id = new CustomerId(Guid.NewGuid());
-            SSN = ssn;
-            Name = name;
-        }
-
-        public void LoadAccounts(IEnumerable<AccountId> accounts)
-        {
-            Accounts = new AccountCollection();
-            Accounts.Add(accounts);
+            this.Id = customerId;
+            this.SSN = ssn;
+            this.Name = name;
+            this.Accounts = new AccountCollection();
+            this.Accounts.Add(accounts);
         }
     }
 }

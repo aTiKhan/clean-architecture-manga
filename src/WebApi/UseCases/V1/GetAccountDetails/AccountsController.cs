@@ -5,40 +5,44 @@ namespace WebApi.UseCases.V1.GetAccountDetails
     using Application.Boundaries.GetAccountDetails;
     using Domain.Accounts.ValueObjects;
     using FluentMediator;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
+    /// <summary>
+    ///     Accounts
+    ///     <see href="https://github.com/ivanpaulovich/clean-architecture-manga/wiki/Design-Patterns#controller">
+    ///         Controller Design Pattern
+    ///     </see>
+    ///     .
+    /// </summary>
     [ApiVersion("1.0")]
     [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public sealed class AccountsController : ControllerBase
     {
-        private readonly IMediator _mediator;
-        private readonly GetAccountDetailsPresenter _presenter;
-
-        public AccountsController(
-            IMediator mediator,
-            GetAccountDetailsPresenter presenter)
-        {
-            _mediator = mediator;
-            _presenter = presenter;
-        }
-
         /// <summary>
-        /// Get an account details.
+        ///     Get an account details.
         /// </summary>
+        /// <param name="mediator"></param>
+        /// <param name="presenter"></param>
         /// <param name="request">A <see cref="GetAccountDetailsRequest"></see>.</param>
-        /// <returns>An asynchronous <see cref="IActionResult"/>.</returns>
+        /// <returns>An asynchronous <see cref="IActionResult" />.</returns>
+        [Authorize]
         [HttpGet("{AccountId}", Name = "GetAccount")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GetAccountDetailsResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Get([FromRoute][Required] GetAccountDetailsRequest request)
+        public async Task<IActionResult> Get(
+            [FromServices] IMediator mediator,
+            [FromServices] GetAccountDetailsPresenter presenter,
+            [FromRoute] [Required] GetAccountDetailsRequest request)
         {
             var input = new GetAccountDetailsInput(new AccountId(request.AccountId));
-            await _mediator.PublishAsync(input);
-            return _presenter.ViewModel;
+            await mediator.PublishAsync(input)
+                .ConfigureAwait(false);
+            return presenter.ViewModel;
         }
     }
 }

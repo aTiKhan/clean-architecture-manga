@@ -5,6 +5,7 @@ namespace WebApi.UseCases.V1.Withdraw
     using Application.Boundaries.Withdraw;
     using Domain.Accounts.ValueObjects;
     using FluentMediator;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
@@ -13,36 +14,32 @@ namespace WebApi.UseCases.V1.Withdraw
     [ApiController]
     public sealed class AccountsController : ControllerBase
     {
-        private readonly IMediator _mediator;
-        private readonly WithdrawPresenter _presenter;
-
-        public AccountsController(
-            IMediator mediator,
-            WithdrawPresenter presenter)
-        {
-            _mediator = mediator;
-            _presenter = presenter;
-        }
-
         /// <summary>
-        /// Withdraw on an account.
+        ///     Withdraw on an account.
         /// </summary>
         /// <response code="200">The updated balance.</response>
         /// <response code="400">Bad request.</response>
         /// <response code="500">Error.</response>
+        /// <param name="mediator"></param>
+        /// <param name="presenter"></param>
         /// <param name="request">The request to Withdraw.</param>
         /// <returns>The updated balance.</returns>
+        [Authorize]
         [HttpPatch("Withdraw")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(WithdrawResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Withdraw([FromForm][Required] WithdrawRequest request)
+        public async Task<IActionResult> Withdraw(
+            [FromServices] IMediator mediator,
+            [FromServices] WithdrawPresenter presenter,
+            [FromForm] [Required] WithdrawRequest request)
         {
             var input = new WithdrawInput(
                 new AccountId(request.AccountId),
                 new PositiveMoney(request.Amount));
-            await _mediator.PublishAsync(input);
-            return _presenter.ViewModel;
+            await mediator.PublishAsync(input)
+                .ConfigureAwait(false);
+            return presenter.ViewModel;
         }
     }
 }

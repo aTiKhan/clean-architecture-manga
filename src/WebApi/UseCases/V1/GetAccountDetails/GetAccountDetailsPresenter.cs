@@ -3,17 +3,32 @@ namespace WebApi.UseCases.V1.GetAccountDetails
     using System.Collections.Generic;
     using Application.Boundaries.GetAccountDetails;
     using Microsoft.AspNetCore.Mvc;
-    using WebApi.ViewModels;
+    using ViewModels;
 
+    /// <summary>
+    /// 
+    /// </summary>
     public sealed class GetAccountDetailsPresenter : IOutputPort
     {
-        public IActionResult ViewModel { get; private set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult ViewModel { get; private set; } = new NoContentResult();
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
         public void NotFound(string message)
         {
-            ViewModel = new NotFoundObjectResult(message);
+            this.ViewModel = new NotFoundObjectResult(message);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="getAccountDetailsOutput"></param>
         public void Standard(GetAccountDetailsOutput getAccountDetailsOutput)
         {
             List<TransactionModel> transactions = new List<TransactionModel>();
@@ -33,7 +48,16 @@ namespace WebApi.UseCases.V1.GetAccountDetails
                 getAccountDetailsOutput.CurrentBalance,
                 transactions);
 
-            ViewModel = new OkObjectResult(getAccountDetailsResponse);
+            this.ViewModel = new OkObjectResult(getAccountDetailsResponse);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        public void WriteError(string message)
+        {
+            this.ViewModel = new BadRequestObjectResult(message);
         }
     }
 }
